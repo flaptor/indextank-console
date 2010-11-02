@@ -20,11 +20,17 @@ def command(line)
         @api = IndexTank::ApiClient.new @apiurl
         @data['api'] = @api
         printf "api url set to %s\n", @apiurl
+    when "list"
+        @api.list_indexes.each {|x| puts x.name}
     when "index"
-        @idxname = args[1]
-        @index = @api.get_index @idxname
-        @data['index'] = @index
-        printf "index set to %s\n", @idxname
+        if !args[1]
+            puts @idxname
+        else
+            @idxname = args[1]
+            @index = @api.get_index @idxname
+            @data['index'] = @index
+            printf "index set to %s\n", @idxname
+        end
     when "search"
         results = @index.search args[1]
         printf "%s results in %s seconds\n", results['matches'], results['search_time']
@@ -32,9 +38,9 @@ def command(line)
             docid = doc['docid']
             printf "docid: #{docid}\n" 
         }
-    when "quit"
-        exit
-    when ""
+    when "help"
+        printf "possible commands are:\n\nurl [url] sets the api url\nlist lists all indexes\nindex [index name] sets the index name \
+        \nsearch [query] searches the current index\nquit exits this shell\n\n"
 
     else
         puts 'no such command, try "help"'
@@ -45,10 +51,17 @@ if File.exists? '.console'
     @data = Marshal.load File.open('.console')
     @index = @data['index']
     @api = @data['api']
+    @idxname = @index.name
 end
-while line = Readline.readline('> ', true)
-    command line
-    f = File.open '.console', 'w'
-    Marshal.dump(@data, f)
+
+while line = Readline.readline('> ', true) and line != 'quit'
+    begin
+        command line
+        f = File.open '.console', 'w'
+        Marshal.dump(@data, f)
+        f.close
+    rescue Exception => e
+        puts e
+    end
 end
 
