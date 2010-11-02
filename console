@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby 
+require 'readline'
+require 'lib/indextank_client'
+
+@apiurl = nil
+@idxname = nil
+@api = nil
+@index = nil
+@data = {}
+
+
+
+def command(line)
+    args = line.split
+    c = args[0]
+    c
+    case c
+    when "url"
+        @apiurl = args[1]
+        @api = IndexTank::ApiClient.new @apiurl
+        @data['api'] = @api
+        printf "api url set to %s\n", @apiurl
+    when "index"
+        @idxname = args[1]
+        @index = @api.get_index @idxname
+        @data['index'] = @index
+        printf "index set to %s\n", @idxname
+    when "search"
+        results = @index.search args[1]
+        printf "%s results in %s seconds\n", results['matches'], results['search_time']
+        results['results'].each {|doc|
+            docid = doc['docid']
+            printf "docid: #{docid}\n" 
+        }
+    when "quit"
+        exit
+    when ""
+
+    else
+        puts 'no such command, try "help"'
+    end
+end
+
+if File.exists? '.console'
+    @data = Marshal.load File.open('.console')
+    @index = @data['index']
+    @api = @data['api']
+end
+while line = Readline.readline('> ', true)
+    command line
+    f = File.open '.console', 'w'
+    Marshal.dump(@data, f)
+end
+
