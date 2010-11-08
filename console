@@ -36,9 +36,32 @@ def command(line)
             docid = doc['docid']
             printf "docid: #{docid}\n" 
         }
+    when "add"
+        if @index == nil
+            puts 'set an index first'
+        else
+           if !args[1]
+               docid = Readline.readline('enter docid (blank to abort):', true)
+           else
+               docid = args[1]
+           end
+           if docid.strip != ''
+               doc = {}
+               while true
+                   field = Readline.readline('field name (or blank to end): ', true)
+                   if field.strip == '' 
+                       break
+                   end
+                   value = Readline.readline('field value: ', true)
+                   doc[field] = value
+               end
+               @index.add_document(docid, doc)
+               printf("added %s\n", docid)
+           end
+        end
     when "help"
         printf "possible commands are:\n\nurl [url] sets the api url\nlist lists all indexes\nindex [index name] sets the index name \
-        \nsearch [query] searches the current index\nquit exits this shell\n\n"
+        \nsearch [query] searches the current index\nadd [docid] creates a new document\nquit exits this shell\n\n"
 
     else
         puts 'no such command, try "help"'
@@ -49,7 +72,9 @@ if File.exists? '.console'
     @data = Marshal.load File.open('.console')
     @index = @data['index']
     @api = @data['api']
-    @idxname = @index.name
+    if @index
+        @idxname = @index.name
+    end
 end
 
 while line = Readline.readline('> ', true) and line != 'quit'
