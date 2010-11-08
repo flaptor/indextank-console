@@ -30,7 +30,7 @@ def command(line)
             printf "index set to %s\n", @idxname
         end
     when "search"
-        results = @index.search args[1]
+        results = @index.search args[1..args.length].join ' '
         printf "%s results in %s seconds\n", results['matches'], results['search_time']
         results['results'].each {|doc|
             docid = doc['docid']
