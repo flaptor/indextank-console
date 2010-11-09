@@ -7,6 +7,10 @@ require 'lib/indextank_client'
 @api = nil
 @index = nil
 @data = {}
+@start = 0
+@len = 10
+@data['start'] = @start
+@data['len'] = @len
 
 
 
@@ -30,7 +34,8 @@ def command(line)
             printf "index set to %s\n", @idxname
         end
     when "search"
-        results = @index.search args[1..args.length].join ' '
+        query = args[1..args.length].join ' '
+        results = @index.search(query, :start => @start, :len => @len)
         printf "%s results in %s seconds\n", results['matches'], results['search_time']
         results['results'].each {|doc|
             docid = doc['docid']
@@ -59,9 +64,17 @@ def command(line)
                printf("added %s\n", docid)
            end
         end
+    when "set"
+        @data.each {|x| p x}
+    when "len"
+        @len = args[1].to_i
+        @data['len'] = @len
+    when "start"
+        @start = args[1].to_i
+        @data['start'] = @start
     when "help"
         printf "possible commands are:\n\nurl [url] sets the api url\nlist lists all indexes\nindex [index name] sets the index name \
-        \nsearch [query] searches the current index\nadd [docid] creates a new document\nquit exits this shell\n\n"
+        \nsearch [query] searches the current index\nadd [docid] creates a new document\nstart [n] show results starting from n\nlen [n] show n results\nset shows current settings\nquit exits this shell\n\n"
 
     else
         puts 'no such command, try "help"'
@@ -72,6 +85,9 @@ if File.exists? '.console'
     @data = Marshal.load File.open('.console')
     @index = @data['index']
     @api = @data['api']
+    @len = @data['len']
+    @start = @data['start']
+    
     if @index
         @idxname = @index.name
     end
