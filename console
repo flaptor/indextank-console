@@ -35,7 +35,7 @@ def command(line)
         end
     when "search"
         query = args[1..args.length].join ' '
-        results = @index.search(query, :start => @start, :len => @len)
+        results = @index.search(query, :start => @start, :len => @len, :function => 1)
         printf "%s results in %s seconds\n", results['matches'], results['search_time']
         results['results'].each {|doc|
             docid = doc['docid']
@@ -64,6 +64,9 @@ def command(line)
                printf("added %s\n", docid)
            end
         end
+    when "delete_index"
+         printf "deleting %s\n", args[1]
+         @api.get_index(args[1]).delete_index
     when "set"
         @data.each {|x| p x}
     when "len"
@@ -73,7 +76,7 @@ def command(line)
         @start = args[1].to_i
         @data['start'] = @start
     when "help"
-        printf "possible commands are:\n\nurl [url] sets the api url\nlist lists all indexes\nindex [index name] sets the index name \
+        printf "possible commands are:\n\nurl [url] sets the api url\nlist lists all indexes\nindex [index name] sets the index name\ndelete_index [index name] deletes an index \
         \nsearch [query] searches the current index\nadd [docid] creates a new document\nstart [n] show results starting from n\nlen [n] show n results\nset shows current settings\nquit exits this shell\n\n"
 
     else
